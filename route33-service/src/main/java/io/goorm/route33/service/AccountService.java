@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 public class AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
+    private final RedisTtlService redisTtlService;
     private final SecureRandom random = new SecureRandom();
 
     /**
@@ -70,6 +71,10 @@ public class AccountService {
      */
     @Transactional
     public int deposit(Long userId, int amount) {
+        if (!redisTtlService.isExecutable(userId, "deposit")) {
+            throw new CustomException("요청이 너무 빠릅니다, 잠시 후 다시 시도해주세요.", HttpStatus.BAD_REQUEST);
+        }
+
         Account account = getAccountWithUserId(userId);
         log.info("입금 전 잔액: {}", account.getBalance());
 
@@ -88,6 +93,10 @@ public class AccountService {
      */
     @Transactional
     public int withdrawal(Long userId, int amount) {
+        if (!redisTtlService.isExecutable(userId, "withdraw")) {
+            throw new CustomException("요청이 너무 빠릅니다, 잠시 후 다시 시도해주세요.", HttpStatus.BAD_REQUEST);
+        }
+
         Account account = getAccountWithUserId(userId);
         log.info("출금 전 잔액: {}", account.getBalance());
         if (account.getBalance() < amount) {
@@ -109,6 +118,10 @@ public class AccountService {
      */
     @Transactional
     public void transfer(Long userId, String targetAccountNumber, int amount) {
+        if (!redisTtlService.isExecutable(userId, "transfer")) {
+            throw new CustomException("요청이 너무 빠릅니다, 잠시 후 다시 시도해주세요.", HttpStatus.BAD_REQUEST);
+        }
+
         Account fromAccount = getAccountWithUserId(userId);
         if (fromAccount.getBalance() < amount) {
             throw new CustomException("송금을 위한 잔액이 부족합니다, 현재 잔액: " + fromAccount.getBalance(), HttpStatus.BAD_REQUEST);

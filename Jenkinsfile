@@ -1,3 +1,4 @@
+// 푸시 감지 파이프라인
 pipeline {
     agent any
 

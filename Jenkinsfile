@@ -40,7 +40,7 @@ pipeline {
         stage('Fetch application.properties from AWS Secrets Manager') {
           steps {
             script {
-              def resourceDir = "/src/main/resources"
+              def resourceDir = "src/main/resources"
               def secretPath = "${resourceDir}/application.properties"
 
               sh """

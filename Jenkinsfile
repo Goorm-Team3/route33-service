@@ -125,7 +125,7 @@ pipeline {
                                 git config user.email "jenkins-bot@your-org.com"
                                 git add ${MANIFEST_FILE_PATH}
                                 git commit -m "Update image tag to ${IMAGE_TAG}"
-                                git push origin main
+                                git push origin dev
                             """
                         }
                     } finally {

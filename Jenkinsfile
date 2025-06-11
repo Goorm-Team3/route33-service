@@ -3,12 +3,9 @@ pipeline {
 
     environment {
         PROJECT_NAME = 'route33-service'
-
         IMAGE_NAME = "${PROJECT_NAME}"
-        IMAGE_TAG = '1.0'
 
         ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}"
-        ECR_IMAGE_TAG = "${IMAGE_TAG}"
         MANIFEST_REPO = 'git@github.com:Goorm-Team3/route33-argocd.git'
         MANIFEST_FILE_PATH = 'apps/service/deployment.yaml'
 
@@ -98,10 +95,10 @@ pipeline {
                     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPO
 
                     echo "[INFO] Tagging Docker image..."
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REPO}:${ECR_IMAGE_TAG}
+                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REPO}:${IMAGE_TAG}
 
                     echo "[INFO] Pushing Docker image to ECR..."
-                    docker push ${ECR_REPO}:${ECR_IMAGE_TAG}
+                    docker push ${ECR_REPO}:${IMAGE_TAG}
                 '''
             }
         }

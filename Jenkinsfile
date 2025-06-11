@@ -1,4 +1,3 @@
-// 푸시 감지 파이프라인.
 pipeline {
     agent any
 
@@ -10,6 +9,8 @@ pipeline {
 
         ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${IMAGE_NAME}"
         ECR_IMAGE_TAG = "${IMAGE_TAG}"
+        MANIFEST_REPO = 'git@github.com:Goorm-Team3/route33-argocd.git'
+        MANIFEST_FILE_PATH = 'apps/service/deployment.yaml'
 
         AWS_ACCOUNT_ID = '982081072642'
         AWS_REGION = 'ap-northeast-2'
@@ -35,6 +36,15 @@ pipeline {
             }
             steps {
                 echo "Building dev branch..."
+            }
+        }
+
+        stage('Set Image Tag') {
+            steps {
+                script {
+                    def tag = new Date().format("yyyyMMdd-HHmmss", TimeZone.getTimeZone('Asia/Seoul'))
+                    env.IMAGE_TAG = tag
+                }
             }
         }
 
@@ -67,6 +77,8 @@ pipeline {
             }
         }
 
+
+
         stage('Build Docker Image') {
             steps {
                 script {
@@ -93,6 +105,40 @@ pipeline {
                 '''
             }
         }
+
+        stage('Update Manifest Repository') {
+            steps {
+                script {
+                    def tempDir = "/tmp/manifest-repo-${UUID.randomUUID().toString()}"
+                    sh """
+                        echo "[INFO] Cloning manifest repository to ${tempDir}..."
+                        git clone ${MANIFEST_REPO} ${tempDir}
+                    """
+
+                    try {
+                        dir(tempDir) {
+                            sh """
+                                echo "[INFO] Checking out 'dev' branch..."
+                                git checkout dev
+
+                                echo "[INFO] Updating image tag in manifest..."
+                                sed -i 's|image: ${ECR_REPO}:.*|image: ${ECR_REPO}:${IMAGE_TAG}|' ${MANIFEST_FILE_PATH}
+
+                                git config user.name "jenkins-bot"
+                                git config user.email "jenkins-bot@your-org.com"
+                                git add ${MANIFEST_FILE_PATH}
+                                git commit -m "Update image tag to ${IMAGE_TAG}"
+                                git push origin main
+                            """
+                        }
+                    } finally {
+                        sh "rm -rf ${tempDir}"
+                        echo "[INFO] Cleaned up temporary manifest repository directory."
+                    }
+                }
+            }
+        }
+
     }
 
     post {

@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity(name = "user_col") // TODO : need to change
+@Entity(name = "user") // TODO : need to change
 public class User {
 
     /**

@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AccountController {
     private final AccountService accountService;
-    private final TokenService tokenService;
 
     /**
      * 계좌 정보 조회를 요청한다.
@@ -29,9 +28,9 @@ public class AccountController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<?> accountInfo(@RequestHeader("Authorization") String token) {
-        long userId = tokenService.extractUserId(token);
-        AccountInfoResponseDto responseDto = accountService.getAccountInfo(userId);
+    public ResponseEntity<?> accountInfo(@RequestHeader("auth-userId") String userId) {
+
+        AccountInfoResponseDto responseDto = accountService.getAccountInfo(Long.parseLong(userId));
 
         return new ResponseEntity<>(new CustomResponseDto<>("조회 성공", responseDto), HttpStatus.OK);
     }
@@ -43,9 +42,8 @@ public class AccountController {
      * @return
      */
     @PostMapping("/deposit")
-    public ResponseEntity<?> deposit(@RequestHeader("Authorization") String token, @RequestBody AccountRequestDto requestDto) {
-        long userId = tokenService.extractUserId(token);
-        int balance = accountService.deposit(userId, requestDto.getAmount());
+    public ResponseEntity<?> deposit(@RequestHeader("auth-userId") String userId, @RequestBody AccountRequestDto requestDto) {
+        int balance = accountService.deposit(Long.parseLong(userId), requestDto.getAmount());
         return new ResponseEntity<>(new CustomResponseDto<>("입금 성공", balance), HttpStatus.OK);
     }
 
@@ -56,9 +54,8 @@ public class AccountController {
      * @return
      */
     @PostMapping("/withdraw")
-    public ResponseEntity<?> withdrawal(@RequestHeader("Authorization") String token, @RequestBody AccountRequestDto requestDto) {
-        long userId = tokenService.extractUserId(token);
-        int balance = accountService.withdrawal(userId, requestDto.getAmount());
+    public ResponseEntity<?> withdrawal(@RequestHeader("auth-userId") String userId, @RequestBody AccountRequestDto requestDto) {
+        int balance = accountService.withdrawal(Long.parseLong(userId), requestDto.getAmount());
 
         return new ResponseEntity<>(new CustomResponseDto<>("출금 성공", balance), HttpStatus.OK);
     }
@@ -70,9 +67,8 @@ public class AccountController {
      * @return
      */
     @PostMapping("/transfer")
-    public ResponseEntity<?> transfer(@RequestHeader("Authorization") String token, @RequestBody AccountRequestDto requestDto) {
-        long userId = tokenService.extractUserId(token);
-        accountService.transfer(userId, requestDto.getAccountNumber(), requestDto.getAmount());
+    public ResponseEntity<?> transfer(@RequestHeader("auth-userId") String userId, @RequestBody AccountRequestDto requestDto) {
+        accountService.transfer(Long.parseLong(userId), requestDto.getAccountNumber(), requestDto.getAmount());
         return new ResponseEntity<>(new CustomResponseDto<>("송금 성공", null), HttpStatus.OK);
 
     }
